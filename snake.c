@@ -3,25 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <conio.h> // _kbhit() ¿Í _getch()¸¦ »ç¿ëÇÏ±â À§ÇÑ ÀüÃ³¸®±â.
-#include <time.h> // clock()°ú clock_t¸¦ »ç¿ëÇÏ±â À§ÇÑ ÀüÃ³¸®±â.
+#include <conio.h> // _kbhit() ì™€ _getch()ë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•œ ì „ì²˜ë¦¬ê¸°.
+#include <time.h> // clock()ê³¼ clock_të¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•œ ì „ì²˜ë¦¬ê¸°.
 #include <memory.h>
 #include "Screen.h"
 
-#define MAP_COL 29 // ¸Ê °¡·Î¼öÄ¡ÀÇ ÃÖ´ëÄ¡
-#define MAP_ROW 22 // ¸Ê ¼¼·Î¼öÄ¡ÀÇ ÃÖ´ëÄ¡
+#define MAP_COL 29 // ë§µ ê°€ë¡œìˆ˜ì¹˜ì˜ ìµœëŒ€ì¹˜
+#define MAP_ROW 22 // ë§µ ì„¸ë¡œìˆ˜ì¹˜ì˜ ìµœëŒ€ì¹˜
 
 typedef enum _STATE { INTRO, READY, RUN, CLEARED, FAILED, STOP, RESULT } STATE;
-typedef enum _DIRECT { LT, RT, U, D } DIRECT;  // ¹æÇâ°ªÀ» ¿­°ÜÇüÀ» ÀÌ¿ë. ¹®ÀÚÇü½ÄÀ¸·Î ¿­°Å.
-											   // _DIRECT ¿­°ÅÇüÀ» DIRECT·Î ´ëÃ¼.
+typedef enum _DIRECT { LT, RT, U, D } DIRECT;  // ë°©í–¥ê°’ì„ ì—´ê²¨í˜•ì„ ì´ìš©. ë¬¸ìží˜•ì‹ìœ¼ë¡œ ì—´ê±°.
+											   // _DIRECT ì—´ê±°í˜•ì„ DIRECTë¡œ ëŒ€ì²´.
 
-typedef struct _SnakePos // _SnakePos ±¸Á¶Ã¼ Á¤ÀÇ.
+typedef struct _SnakePos // _SnakePos êµ¬ì¡°ì²´ ì •ì˜.
 {
-	int X, Y; // ÇöÀç ÁÂÇ¥°ª.
-	int OX, OY; // °ú°Å ÁÂÇ¥°ª.
-} SnakePos;// _SnakePosition ±¸Á¶Ã¼¸¦ POSITIONÀ¸·Î ´ëÃ¼.
+	int X, Y; // í˜„ìž¬ ì¢Œí‘œê°’.
+	int OX, OY; // ê³¼ê±° ì¢Œí‘œê°’.
+} SnakePos;// _SnakePosition êµ¬ì¡°ì²´ë¥¼ POSITIONìœ¼ë¡œ ëŒ€ì²´.
 
-typedef struct _STAGE_INFO // ½ºÅ×ÀÌÁö Á¤º¸ ±¸Á¶Ã¼.
+typedef struct _STAGE_INFO // ìŠ¤í…Œì´ì§€ ì •ë³´ êµ¬ì¡°ì²´.
 {
 	int EnemyC;
 	int EnemyCP;
@@ -29,18 +29,18 @@ typedef struct _STAGE_INFO // ½ºÅ×ÀÌÁö Á¤º¸ ±¸Á¶Ã¼.
 	int EatC;
 	int nMap[MAP_ROW][MAP_COL];
 
-} STAGE_INFO;// _STAGE_INFO ±¸Á¶Ã¼¸¦ STAGE_INFOÀ¸·Î ´ëÃ¼.
+} STAGE_INFO;// _STAGE_INFO êµ¬ì¡°ì²´ë¥¼ STAGE_INFOìœ¼ë¡œ ëŒ€ì²´.
 
-typedef struct _SnakeInfo // _SnakeInfo ±¸Á¶Ã¼ Á¤ÀÇ.
+typedef struct _SnakeInfo // _SnakeInfo êµ¬ì¡°ì²´ ì •ì˜.
 {
 	int Life;
 	DIRECT SnakeDR;
 	clock_t MTime;
 	clock_t OTime;
-	SnakePos SnakeHD; // SnakePos ±¸Á¶Ã¼ÀÇ ¿ä¼Ò¸¦ SnakeHD·Î ¼±¾ð.
+	SnakePos SnakeHD; // SnakePos êµ¬ì¡°ì²´ì˜ ìš”ì†Œë¥¼ SnakeHDë¡œ ì„ ì–¸.
 	SnakePos SnakeTL[20];
 
-} SnakeInfo; // _SnakeBody ±¸Á¶Ã¼¸¦ BODY·Î ´ëÃ¼.
+} SnakeInfo; // _SnakeBody êµ¬ì¡°ì²´ë¥¼ BODYë¡œ ëŒ€ì²´.
 
 typedef struct _EnemyInfo
 {
@@ -66,7 +66,7 @@ clock_t StartT;
 clock_t UpdateOT;
 clock_t RemainT;
 
-char StageIcon[5][4] = { "¡Ý", "¡á", "¢¾", "¡Ü", "¡ß" }; // ¸Ê¿¡ Ãâ·ÂÇÒ ¾ÆÀÌÄÜÀÇ °ª. ¼ø¼­´ë·Î 0,1,2,3,4
+char StageIcon[5][4] = { "â—Ž", "â– ", "â™¥", "â—", "â—†" }; // ë§µì— ì¶œë ¥í•  ì•„ì´ì½˜ì˜ ê°’. ìˆœì„œëŒ€ë¡œ 0,1,2,3,4
 
 int Stage1[MAP_ROW][MAP_COL] =
 {
@@ -92,7 +92,7 @@ int Stage1[MAP_ROW][MAP_COL] =
 	{ 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1, -1, -1, -1,  2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1 },
 	{ 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1 },
 	{ 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1 },
-}; // ¸ÊÀÇ ±¸Çö.
+}; // ë§µì˜ êµ¬í˜„.
 
 int Stage2[MAP_ROW][MAP_COL] =
 {
@@ -118,146 +118,146 @@ int Stage2[MAP_ROW][MAP_COL] =
 	{ 1, -1,  2, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1 },
 	{ 1, -1, -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  1 },
 	{ 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1 },
-}; // ¸ÊÀÇ ±¸Çö.
+}; // ë§µì˜ êµ¬í˜„.
 
 void IntroScreen()
 {
-	ScreenPrint(0, 0, "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯");
-	ScreenPrint(0, 1, "¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 2, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 3, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 4, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡Ý¡¡¡á¡á¡á¡á¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 5, "¦­¡á¡¡¡¡¡¡¡¡¢¾¡¡¡á¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 6, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡ ¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯¡¡¡¡ ¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 7, "¦­¡á¡¡¡¡¡¡¡á¡á¡á¡¡¡¡ ¦­¡Ú¡¡ Snake    ¡Ú¦­¡¡¡¡¡¡¡¡ ¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 8, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ ¦±¦¬¦¬¦¬¦¬¦¬¦³¦¬¦¬¦° ¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 9, "¦­¡á¡¡¡¡¡Ý¡¡¡¡¡¡¡¡¡¡¡¡¡¡ /)/)¡¡¡¡¦­¡¡ ¡¡¡¡¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 10,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡Ú(*'')/¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 11,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡Ý¡¡¡¡¢¾¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 12,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 13,"¦­¡á¡¡¡¡¡á¡á¡á¡á¡á¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 14,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡¡¡¡¡¡¡¡¡ ¡Ü¡ß¡ß   ¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 15,"¦­¡á¡¡¡¡¡¡¢¾¡Ý¡¡¡¡¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ ¡ß ¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 16,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡Press Space Key! ¡ß¡ß¡ß¡ß¡ß¡¡¡¡ ¡¡¡¡¡á¦­");
-	ScreenPrint(0, 17,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 18,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡á¡á¡á¡á¡¡¡¡¡¡¡¡¡¡¡á¡á¡á¡á¡á¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 19,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 20,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡¡¡¡¡¡Ý¡¡¡¡¢¾¡¡¡á¦­");
-	ScreenPrint(0, 21,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 22,"¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 23,"¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°");
+	ScreenPrint(0, 0, "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“");
+	ScreenPrint(0, 1, "â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 2, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 3, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 4, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€â—Žã€€â– â– â– â– â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 5, "â”ƒâ– ã€€ã€€ã€€ã€€â™¥ã€€â– â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 6, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ â”â”â”â”â”â”â”â”â”â”“ã€€ã€€ ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 7, "â”ƒâ– ã€€ã€€ã€€â– â– â– ã€€ã€€ â”ƒâ˜…ã€€ Snake    â˜…â”ƒã€€ã€€ã€€ã€€ ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 8, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ â”—â”â”â”â”â”â”³â”â”â”› ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 9, "â”ƒâ– ã€€ã€€â—Žã€€ã€€ã€€ã€€ã€€ã€€ã€€ /)/)ã€€ã€€â”ƒã€€ ã€€ã€€â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 10,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â˜…(*'')/ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 11,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â—Žã€€ã€€â™¥ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 12,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 13,"â”ƒâ– ã€€ã€€â– â– â– â– â– â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 14,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ã€€ã€€ã€€ã€€ â—â—†â—†   ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 15,"â”ƒâ– ã€€ã€€ã€€â™¥â—Žã€€ã€€â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ â—† ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 16,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€Press Space Key! â—†â—†â—†â—†â—†ã€€ã€€ ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 17,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 18,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â– â– â– â– ã€€ã€€ã€€ã€€ã€€â– â– â– â– â– ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 19,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 20,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ã€€ã€€â—Žã€€ã€€â™¥ã€€â– â”ƒ");
+	ScreenPrint(0, 21,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 22,"â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 23,"â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›");
 }
 
 void ReadyScreen()
 {
-	ScreenPrint(0, 0, "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯");
-	ScreenPrint(0, 1, "¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 2, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 3, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 4, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 5, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 6, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 7, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 8, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 9, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 10,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 11,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 12,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 13,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 14,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡Are You Ready?¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 15,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 16,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 17,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 18,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 19,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 20,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 21,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 22,"¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 23,"¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°");
+	ScreenPrint(0, 0, "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“");
+	ScreenPrint(0, 1, "â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 2, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 3, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 4, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 5, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 6, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 7, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 8, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 9, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 10,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 11,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 12,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 13,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 14,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€Are You Ready?ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 15,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 16,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 17,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 18,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 19,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 20,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 21,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 22,"â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 23,"â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›");
 }
 
 void ClearedScreen()
 {
-	ScreenPrint(0, 0, "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯");
-	ScreenPrint(0, 1, "¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 2, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 3, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 4, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 5, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 6, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 7, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 8, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡Congratulation!!!¡¡¡¡¡¡ ¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 9, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 10,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 11,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 12,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 13,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 14,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 15,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 16,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 17,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 18,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 19,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 20,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 21,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 22,"¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 23,"¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°");
+	ScreenPrint(0, 0, "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“");
+	ScreenPrint(0, 1, "â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 2, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 3, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 4, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 5, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 6, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 7, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 8, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€Congratulation!!!ã€€ã€€ã€€ ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 9, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 10,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 11,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 12,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 13,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 14,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 15,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 16,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 17,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 18,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 19,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 20,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 21,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 22,"â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 23,"â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›");
 }
 
 void FailureScreen()
 {
-	ScreenPrint(0, 0, "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯");
-	ScreenPrint(0, 1, "¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 2, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 3, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 4, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 5, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 6, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 7, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 8, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡You Failed....   ¡¡¡¡¡¡ ¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 9, "¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 10,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 11,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 12,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 13,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 14,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 15,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 16,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 17,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 18,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 19,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 20,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 21,"¦­¡á¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡á¦­");
-	ScreenPrint(0, 22,"¦­¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¡á¦­");
-	ScreenPrint(0, 23,"¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°");
+	ScreenPrint(0, 0, "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“");
+	ScreenPrint(0, 1, "â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 2, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 3, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 4, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 5, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 6, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 7, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 8, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€You Failed....   ã€€ã€€ã€€ ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 9, "â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 10,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 11,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 12,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 13,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 14,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 15,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 16,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 17,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 18,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 19,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 20,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 21,"â”ƒâ– ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â– â”ƒ");
+	ScreenPrint(0, 22,"â”ƒâ– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â– â”ƒ");
+	ScreenPrint(0, 23,"â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›");
 }
 
 void ResultScreen()
 {
-	ScreenPrint(0, 0, "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯");
-	ScreenPrint(0, 1, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 2, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 3, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 4, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 5, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 6, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 7, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 8, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 9, "¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 10,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 11,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 12,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 13,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 14,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 15,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 16,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 17,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 18,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 19,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 20,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 21,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 22,"¦­¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¦­");
-	ScreenPrint(0, 23,"¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°");
+	ScreenPrint(0, 0, "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“");
+	ScreenPrint(0, 1, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 2, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 3, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 4, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 5, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 6, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 7, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 8, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 9, "â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 10,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 11,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 12,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 13,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 14,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 15,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 16,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 17,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 18,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 19,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 20,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 21,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 22,"â”ƒã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â”ƒ");
+	ScreenPrint(0, 23,"â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›");
 }
 
 void Stageopen()
@@ -831,7 +831,7 @@ void GamePlay()
 			{
 				if (Stage.nMap[i][j] == -1)
 				{
-					ScreenPrint((j * 2), i, "¡¡");
+					ScreenPrint((j * 2), i, "ã€€");
 				}
 
 				else
@@ -857,13 +857,13 @@ void GamePlay()
 
 		sprintf(string, "%d Stage", StageNum + 1);
 		ScreenPrint(61, 5, string);
-		sprintf(string, "³²Àº½Ã°£: %dºÐ %dÃÊ", RemainT / 60, RemainT %60);
+		sprintf(string, "ë‚¨ì€ì‹œê°„: %dë¶„ %dì´ˆ", RemainT / 60, RemainT %60);
 		ScreenPrint(61, 7, string);
-		sprintf(string, "¸ÔÀÌ È¹µæ ¼ö: %d", EatC);
+		sprintf(string, "ë¨¹ì´ íšë“ ìˆ˜: %d", EatC);
 		ScreenPrint(61, 9, string);
-		sprintf(string, "µæÁ¡: %d", Score);
+		sprintf(string, "ë“ì : %d", Score);
 		ScreenPrint(61, 11, string);
-		sprintf(string, "Àû ¼ö: %d", Stage.EnemyC);
+		sprintf(string, "ì  ìˆ˜: %d", Stage.EnemyC);
 		ScreenPrint(61, 13, string);
 
 		break;
